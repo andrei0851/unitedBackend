@@ -57,17 +57,36 @@ namespace Backend.Controllers
         }
 
         [HttpPost("like")]
-        public async Task<IActionResult> like(String postID)
+        public async Task<IActionResult> like(string postID, string UserName)
         {
+            
             int post = Int32.Parse(postID);
+
+            var postQuery = _db.Like.Where(like => UserName == like.UserName && post == like.postID);
+
             var foundPost = _db.Posts
                .Where(p => p.Id == post).Single();
 
-            foundPost.Likes++;
-            _db.SaveChanges();
+            var like = new Like
+            {
+                postID = post,
+                UserName = UserName
+            };
 
-
-            return new JsonResult(new { status = "Success" });
+            if (!postQuery.Any())
+            {
+                _db.Like.Add(like);
+                foundPost.Likes++;
+                _db.SaveChanges();
+                return new JsonResult(new { status = "liked" });
+            }
+            else
+            {
+                _db.Like.Remove(postQuery.Single());
+                foundPost.Likes--;
+                _db.SaveChanges();
+                return new JsonResult(new { status = "unliked" });
+            }           
 
         }
 
