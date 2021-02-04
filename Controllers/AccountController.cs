@@ -56,7 +56,17 @@ namespace Backend.Controllers
                       return Conflict(new { status = false, message = "Email Exists" });
                     }
 
-                var userToCreate = new User
+                try
+                {
+                    var existingUserWithUserName = _db.Users
+                .Any(u => u.UserName == registerPayload.UserName);
+
+                    if (existingUserWithUserName)
+                    {
+                        return Conflict(new { status = false, message = "UserName already exists." });
+                    }
+
+                    var userToCreate = new User
                 {
                     Email = registerPayload.Email,
                     UserName = registerPayload.UserName,
